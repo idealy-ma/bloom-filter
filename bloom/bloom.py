@@ -26,7 +26,6 @@ def createSHA256(table):
     contentSHA256 = []
 
     for word in table :
-        
         #ajouter le resultat
         contentSHA256.append(singleSHA256(word))
 
@@ -51,13 +50,15 @@ def myHashTwo(word):
     hash_val = 0
     for char in word :
         hash_val = (hash_val << 2) ^ (hash_val >> 28) ^ ord(char)
-    return hash_val%1000000000
+    return hash_val%10
 
 def myHashThree(word):
-    hash_val = 0
-    for char in word :
-        hash_val = (hash_val << 2) ^ (hash_val >> 28) 
-    return hash_value
+    prime = 1099511628211
+    hash_val = 14695981039346656037
+    for char in word:
+        hash_val = hash_val * prime
+        hash_val = hash_val ^ ord(char)
+    return hash_val%10
 
 # creation de tableau de bit de hashage
 def bloomFilter(wordList):
@@ -65,9 +66,11 @@ def bloomFilter(wordList):
     for word in wordList :
         resultOne = myHashOne(word)
         resultTwo = myHashTwo(word)
+        resultThree = myHashThree(word)
 
         bloom |= 1 << resultOne
         bloom |= 1 << resultTwo
+        bloom |= 1 << resultThree
     
     return bloom
 
@@ -75,11 +78,13 @@ def bloomFilter(wordList):
 def checkWord(word, bloom):
     resultOne = myHashOne(word)
     resultTwo = myHashTwo(word)
+    resultThree = myHashThree(word)
 
     set_one = bloom & (1 << resultOne)
     set_two = bloom & (1 << resultTwo)
+    set_three = bloom & (1 << resultThree)
 
-    if set_one and set_two :
+    if set_one and set_two and set_three:
         return True
     else :
         return False
@@ -97,21 +102,33 @@ def checkFalsePositif(outsideWord, theOrigins):
         return True
     return False
 
+def checkFalsePositif(outsideWord, theOrigins):
+    if checkWord(outsideWord,bloomFilter(theOrigins)) and (linearVerification(outsideWord, theOrigins) is False):
+        return True
+    return False
+
 def probabilityOfFalse(outsideWords, theOrigins) :
     numberMaximal = 0
     falsePositifNumber = 0
     for word in outsideWords :
         numberMaximal += 1
+        print("nm : ",numberMaximal)
         if checkFalsePositif(word, theOrigins) :
             falsePositifNumber += 1
-
+            print("false num : ", falsePositifNumber)
+            
     return falsePositifNumber/numberMaximal
 
 # generation des millions de donnee pour le test de probabilite
 
-# createHash('../data/listenoire', '../data/hash')
-sha256Word = readFile('/home/idealy/Documents/GitHub/bloom-filter/data/hash')
-word = singleSHA256("empathy")
+# createHash('/home/idealy/Documents/GitHub/bloom-filter/data/data-test', '/home/idealy/Documents/GitHub/bloom-filter/data/hash-test')
+# sha256Word = readFile('/home/idealy/Documents/GitHub/bloom-filter/data/hashword')
+test = readFile('/home/idealy/Documents/GitHub/bloom-filter/data/hash-test')
+train = readFile('/home/idealy/Documents/GitHub/bloom-filter/data/hashword')
 
-print("Bloom Filter : ",checkWord(word,bloomFilter(sha256Word)))
-print("Linear verification : ",linearVerification(word, sha256Word))
+# word = singleSHA256("hello")
+
+print(probabilityOfFalse(test, train))
+# print(myHashTwo((word)))
+# print("Bloom Filter : ",checkWord(word,bloomFilter(sha256Word)))
+# print("Linear verification : ",linearVerification(word, sha256Word))
