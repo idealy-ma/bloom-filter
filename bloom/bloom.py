@@ -92,14 +92,26 @@ def linearVerification(word, wordList):
     return False
 
 # calcule de probabilite de faux positif
+def checkFalsePositif(outsideWord, theOrigins):
+    if checkWord(outsideWord,bloomFilter(theOrigins)) and (linearVerification(outsideWord, theOrigins) is False):
+        return True
+    return False
 
+def probabilityOfFalse(outsideWords, theOrigins) :
+    numberMaximal = 0
+    falsePositifNumber = 0
+    for word in outsideWords :
+        numberMaximal += 1
+        if checkFalsePositif(word, theOrigins) :
+            falsePositifNumber += 1
+
+    return falsePositifNumber/numberMaximal
+
+# generation des millions de donnee pour le test de probabilite
+
+# createHash('../data/listenoire', '../data/hash')
 sha256Word = readFile('/home/idealy/Documents/GitHub/bloom-filter/data/hash')
 word = singleSHA256("empathy")
 
 print("Bloom Filter : ",checkWord(word,bloomFilter(sha256Word)))
 print("Linear verification : ",linearVerification(word, sha256Word))
-
-
-# createHash('../data/listenoire', '../data/hash')
-
-
